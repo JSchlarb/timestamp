@@ -1,0 +1,16 @@
+{{- range $topicName := .Values.kafka.producerTopics }}
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: {{ include "base.fullname" $ }}-{{ $topicName | kebabcase }}
+  labels:
+    {{- include "base.labels" $ | nindent 4 }}
+    strimzi.io/cluster: {{ $.Values.kafka.clusterName }}
+spec:
+  topicName: {{ $topicName }}
+  partitions: 1
+  replicas: 1
+  config:
+    retention.ms: 7200000
+{{- end }}

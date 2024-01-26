@@ -1,0 +1,34 @@
+timestamp:
+  producer:
+    topic: timestamp.raw
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  server:
+    port: 9023
+
+spring:
+  kafka:
+    bootstrap-servers: bootstrap.local.lgc:9094
+    security:
+      protocol: SSL
+    ssl:
+      key-store-type: PKCS12
+      key-store-location: classpath:user.p12
+      key-store-password: ~
+      truststore-type: PEM
+      trust-store-location: classpath:ca.crt
+
+    producer:
+      value-serializer: org.apache.kafka.common.serialization.LongSerializer
+
+server:
+  port: 8023

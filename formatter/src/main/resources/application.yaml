@@ -1,0 +1,43 @@
+timestamp:
+  producer:
+    topic:
+      iso: timestamp.processed.iso
+      basicIsoDate: timestamp.processed.basic-iso-date
+  consumer:
+    topic: timestamp.raw
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  server:
+    port: 9024
+
+spring:
+  kafka:
+    bootstrap-servers: bootstrap.local.lgc:9094
+    security:
+      protocol: SSL
+
+    ssl:
+      key-store-type: PKCS12
+      key-store-location: classpath:user.p12
+      key-store-password: ~
+      truststore-type: PEM
+      trust-store-location: classpath:ca.crt
+
+    producer:
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+    consumer:
+      value-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      group-id: formatter
+
+server:
+  port: 8024

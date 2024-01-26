@@ -1,0 +1,53 @@
+timestamp:
+  consumer:
+    topic:
+      iso: timestamp.processed.iso
+      basicIsoDate: timestamp.processed.basic-iso-date
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  server:
+    port: 9022
+
+spring:
+  kafka:
+    bootstrap-servers: bootstrap.local.lgc:9094
+    security:
+      protocol: SSL
+    ssl:
+      key-store-type: PKCS12
+      key-store-location: classpath:user.p12
+      key-store-password: ~
+      truststore-type: PEM
+      trust-store-location: classpath:ca.crt
+
+    consumer:
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: websocket
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: sandbox-ui
+            authorization-grant-type: authorization_code
+            scope: openid,offline_access,profile
+            provider: keycloak
+        provider:
+          keycloak:
+            issuer-uri: https://keycloak.local.lgc/realms/sandbox
+
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.local.lgc/realms/sandbox
+server:
+  port: 8022

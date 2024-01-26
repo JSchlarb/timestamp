@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "base.fullname" . }}
+  labels:
+    {{- include "base.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "base.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "base.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "base.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+            - name: SERVICE_BINDING_ROOT
+              value: /mnt/platform/bindings
+            - name: SPRING_CONFIG_ADDITIONAL-LOCATION
+              value: file:/app-conf/application.yaml
+            - name: SERVER_PORT
+              value: "8080"
+            - name: MANAGEMENT_PORT
+              value: "8081"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: mgmt
+              containerPort: 8081
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: mgmt
+            # for local development, we will use some rocky numbers
+            failureThreshold: 100
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: mgmt
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: mgmt
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /app-conf/application.yaml
+              name: app-conf
+              subPath: application.yaml
+            - mountPath: /mnt/platform/bindings/ca-certificates/type
+              name: app-conf
+              subPath: type
+            - mountPath: /mnt/secret/kafka-credentials
+              name: kafka-user
+            - mountPath: /mnt/secret/kafka-cluster-ca
+              name: kafka-cluster-ca
+            - mountPath: /mnt/platform/bindings/ca-certificates/root.crt
+              name: local-ca
+              subPath: tls.crt
+            - mountPath: /app-conf/type
+              name: app-conf
+              subPath: application.yaml
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+# hack because in the /etc/hosts its already points to 127.0.0.1 keycloak.local.lgc
+      hostAliases:
+        - ip: 172.25.0.5
+          hostnames:
+            - keycloak.local.lgc
+      volumes:
+        - name: local-ca
+          secret:
+            secretName: root-ca-secret
+        - name: app-conf
+          configMap:
+            name: {{ include "base.fullname" . }}-config
+        - name: kafka-user
+          secret:
+            secretName: {{ include "base.fullname" . }}
+        - name: kafka-cluster-ca
+          secret:
+            secretName: kafka-lfg-cluster-ca-cert
+            items:
+              - key: ca.crt
+                path: ca.crt

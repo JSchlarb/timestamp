@@ -1,0 +1,26 @@
+nameOverride: websocket
+
+image:
+  repository: ghcr.io/jschlarb/timestamp/websocket
+
+kafka:
+  consumerTopics:
+    - timestamp.processed.iso
+    - timestamp.processed.basic-iso-date
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: default-cluster-issuer
+  hosts:
+    - host: websocket.local.lgc
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: websocket-tls
+      hosts:
+        - websocket.local.lgc

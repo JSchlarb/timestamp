@@ -1,0 +1,11 @@
+nameOverride: formatter
+
+image:
+  repository: ghcr.io/jschlarb/timestamp/formatter
+
+kafka:
+  consumerTopics:
+    - timestamp.raw
+  producerTopics:
+    - timestamp.processed.iso
+    - timestamp.processed.basic-iso-date

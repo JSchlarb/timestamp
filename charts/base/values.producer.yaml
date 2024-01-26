@@ -1,0 +1,8 @@
+nameOverride: producer
+
+image:
+  repository: ghcr.io/jschlarb/timestamp/producer
+
+kafka:
+  producerTopics:
+    - timestamp.raw

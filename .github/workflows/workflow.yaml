@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build container images
+        run: >-
+          ./mvnw spring-boot:build-image -q -B 
+          -Dsha="-$GIT_REVISION" 
+          -Dspring-boot.build-image.publish=true 
+          -Ddocker.publishRegistry.username=${{ github.actor }} 
+          -Ddocker.publishRegistry.password=${{ secrets.GITHUB_TOKEN }} 
+          -Ddocker.publishRegistry.url=ghcr.io
+
+      - name: Publish helm charts
+        run: |
+          VERSION="0.0.1-${GIT_REVISION}-SNAPSHOT"
+          mv charts/base/values.* /tmp
+          for MODULE in producer formatter websocket
+          do
+            export MODULE="${MODULE}"
+            yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' /tmp/values.yaml /tmp/values.${MODULE}.yaml > charts/base/values.yaml
+            yq -i  ".name = env(MODULE)" charts/base/Chart.yaml
+            helm package --version "${VERSION}" --app-version "${VERSION}" ./charts/base
+            helm push "${MODULE}-${VERSION}.tgz" "oci://ghcr.io/jschlarb/timestamp/helm/"
+          done

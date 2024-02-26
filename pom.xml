@@ -25,6 +25,9 @@
         <changelist>-SNAPSHOT</changelist>
         <java.version>21</java.version>
         <kotlin.version>1.9.22</kotlin.version>
+        <docker.publishRegistry.url></docker.publishRegistry.url>
+        <docker.publishRegistry.username></docker.publishRegistry.username>
+        <docker.publishRegistry.password></docker.publishRegistry.password>
     </properties>
     <dependencies>
         <dependency>
@@ -83,6 +86,13 @@
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <configuration>
                         <imageName>ghcr.io/jschlarb/timestamp/${project.artifactId}:${project.version}</imageName>
+                        <docker>
+                            <publishRegistry>
+                                <url>${docker.publishRegistry.url}</url>
+                                <username>${docker.publishRegistry.username}</username>
+                                <password>${docker.publishRegistry.password}</password>
+                            </publishRegistry>
+                        </docker>
                     </configuration>
                 </plugin>
             </plugins>

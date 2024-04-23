@@ -75,9 +75,11 @@ spec:
               name: kafka-user
             - mountPath: /mnt/secret/kafka-cluster-ca
               name: kafka-cluster-ca
+{{- if .Values.isLocal }}
             - mountPath: /mnt/platform/bindings/ca-certificates/root.crt
               name: local-ca
               subPath: tls.crt
+{{- end }}
             - mountPath: /app-conf/type
               name: app-conf
               subPath: application.yaml
@@ -93,16 +95,20 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.isLocal }}
 # hack because in the /etc/hosts its already points to 127.0.0.1 keycloak.local.lgc
       hostAliases:
         - ip: 172.25.0.5
           hostnames:
             - keycloak.local.lgc
+{{- end }}
       volumes:
+{{- if .Values.isLocal }}
         - name: local-ca
           secret:
             secretName: root-ca-secret
         - name: app-conf
+{{- end }}
           configMap:
             name: {{ include "base.fullname" . }}-config
         - name: kafka-user

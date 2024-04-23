@@ -5,6 +5,8 @@ kafka:
   producerTopics: [ ]
   consumerTopics: [ ]
 
+isLocal: true
+
 appConfig:
   management:
     security:

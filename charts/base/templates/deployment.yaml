@@ -107,8 +107,8 @@ spec:
         - name: local-ca
           secret:
             secretName: root-ca-secret
-        - name: app-conf
 {{- end }}
+        - name: app-conf
           configMap:
             name: {{ include "base.fullname" . }}-config
         - name: kafka-user

@@ -73,7 +73,12 @@ func (m *Timestamp) VulnerabilityCheck(
 	// +optional
 	exitCode string,
 ) *dagger.Container {
-	// create a cache volume for Maven downloads
+	if severity == "" {
+		severity = "HIGH,CRITICAL"
+	}
+	if exitCode == "" {
+		exitCode = "1"
+	}
 	return dag.Container().
 		From("aquasec/trivy:0.53.0").
 		WithMountedDirectory("/app", source).

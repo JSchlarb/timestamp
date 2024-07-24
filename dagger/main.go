@@ -1,17 +1,3 @@
-// A generated module for Timestamp functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
-
 package main
 
 import (
@@ -66,6 +52,22 @@ func (m *Timestamp) Build(
 	return build
 }
 
+func (m *Timestamp) IntegrationTest(ctx context.Context, source *dagger.Directory) *dagger.Container {
+	mavenCache := dag.CacheVolume("maven-cache")
+	svc := dag.
+		Compose().
+		WithFile("./compose.yaml")
+
+	it := svc.
+		From("maven:3.9-eclipse-temurin-17").
+		WithMountedCache("/root/.m2", mavenCache).
+		WithMountedDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"curl", "http://localhost:8081"})
+
+	return it
+}
+
 func (m *Timestamp) VulnerabilityCheck(
 	source *dagger.Directory,
 	// +optional
@@ -83,15 +85,7 @@ func (m *Timestamp) VulnerabilityCheck(
 		From("aquasec/trivy:0.53.0").
 		WithMountedDirectory("/app", source).
 		WithWorkdir("/app").
-		WithExec([]string{
-			"trivy",
-			"fs",
-			"--severity",
-			severity,
-			"--exit-code",
-			exitCode,
-			".",
-		})
+		WithExec([]string{"trivy", "fs", "--severity", severity, "--exit-code", exitCode, "."})
 }
 
 func (m *Timestamp) Dind() *dagger.Service {

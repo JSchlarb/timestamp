@@ -3,6 +3,10 @@
   "sdk": "go",
   "dependencies": [
     {
+      "name": "compose",
+      "source": "github.com/wingyplus/daggerverse/compose@b4d24011f88f8798ba548d0093c86c2bb70c2b82"
+    },
+    {
       "name": "docker",
       "source": "github.com/aweris/daggerverse/docker@83c5efe92af2afacff2a1d3475480ac7f3710ed9"
     },

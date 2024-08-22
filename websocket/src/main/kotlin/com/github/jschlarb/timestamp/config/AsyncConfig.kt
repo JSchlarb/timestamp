@@ -6,11 +6,11 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.core.task.SimpleAsyncTaskExecutor
 import org.springframework.stereotype.Component
 
-
 @Component
 class AsyncConfig {
     @Bean
-    fun applicationEventMulticaster(): ApplicationEventMulticaster = SimpleApplicationEventMulticaster().apply {
-        setTaskExecutor(SimpleAsyncTaskExecutor())
-    }
+    fun applicationEventMulticaster(): ApplicationEventMulticaster =
+        SimpleApplicationEventMulticaster().apply {
+            setTaskExecutor(SimpleAsyncTaskExecutor())
+        }
 }

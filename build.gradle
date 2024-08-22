@@ -9,6 +9,18 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "${kotlinVersion}"
 }
 
+configurations {
+    compileClasspath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    runtimeClasspath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    annotationProcessor {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
 repositories {
     mavenLocal()
     mavenCentral()

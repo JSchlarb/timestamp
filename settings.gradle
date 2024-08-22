@@ -9,6 +9,6 @@ pluginManagement {
   }
 }
 
-include("producer")
+include("producer", "websocket", "formatter")
 
 rootProject.name = 'timestamp'

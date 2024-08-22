@@ -12,30 +12,30 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
-
 @Configuration
 @EnableWebSecurity
 class SecurityConfiguration(val jwtConverter: CustomJwtAuthenticationConverter) {
-
+    // completely disable cors ... it's just for dev and illuastration purpose
     @Bean
-    // completely disable cors ... it's just for dev and illustration purpose
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedMethods = listOf(
-            HttpMethod.GET.name(),
-            HttpMethod.HEAD.name(),
-            HttpMethod.POST.name(),
-            HttpMethod.OPTIONS.name()
-        );
+        configuration.allowedMethods =
+            listOf(
+                HttpMethod.GET.name(),
+                HttpMethod.HEAD.name(),
+                HttpMethod.POST.name(),
+                HttpMethod.OPTIONS.name(),
+            )
         configuration.allowCredentials = true
         configuration.setAllowedOriginPatterns(listOf("*"))
-        configuration.allowedHeaders = listOf(
-            "X-Requested-With",
-            "Origin",
-            "Content-Type",
-            "Accept",
-            "Authorization"
-        );
+        configuration.allowedHeaders =
+            listOf(
+                "X-Requested-With",
+                "Origin",
+                "Content-Type",
+                "Accept",
+                "Authorization",
+            )
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source

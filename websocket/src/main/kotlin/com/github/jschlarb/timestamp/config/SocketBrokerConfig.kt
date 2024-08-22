@@ -17,11 +17,10 @@ import org.springframework.util.StringUtils
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer
 
-
 @Configuration
 class SocketBrokerConfig(
     private val jwtDecoder: JwtDecoder,
-    private val converter: Converter<Jwt, AbstractAuthenticationToken>
+    private val converter: Converter<Jwt, AbstractAuthenticationToken>,
 ) : WebSocketMessageBrokerConfigurer {
     override fun configureMessageBroker(config: MessageBrokerRegistry) {
         config.enableSimpleBroker("/topic", "/queue")
@@ -36,21 +35,26 @@ class SocketBrokerConfig(
     }
 
     override fun configureClientInboundChannel(registration: ChannelRegistration) {
-        registration.interceptors(object : ChannelInterceptor {
-            override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
-                val accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor::class.java)
-                if (StompCommand.CONNECT == accessor!!.command) {
-                    extractBearerToken(accessor)
-                }
-                return message
-            }
-
-            private fun extractBearerToken(accessor: StompHeaderAccessor) =
-                accessor.getNativeHeader("Authorization")
-                    ?.first { token -> StringUtils.startsWithIgnoreCase(token, "bearer") }
-                    ?.let { token ->
-                        accessor.user = converter.convert(jwtDecoder.decode(token.substring("bearer".length).trim()))
+        registration.interceptors(
+            object : ChannelInterceptor {
+                override fun preSend(
+                    message: Message<*>,
+                    channel: MessageChannel,
+                ): Message<*> {
+                    val accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor::class.java)
+                    if (StompCommand.CONNECT == accessor!!.command) {
+                        extractBearerToken(accessor)
                     }
-        })
+                    return message
+                }
+
+                private fun extractBearerToken(accessor: StompHeaderAccessor) =
+                    accessor.getNativeHeader("Authorization")
+                        ?.first { token -> StringUtils.startsWithIgnoreCase(token, "bearer") }
+                        ?.let { token ->
+                            accessor.user = converter.convert(jwtDecoder.decode(token.substring("bearer".length).trim()))
+                        }
+            },
+        )
     }
 }

@@ -15,7 +15,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-
 @Configuration
 @EnableWebSocketMessageBroker
 class WebSocketSecurityConfig : AbstractSecurityWebSocketMessageBrokerConfigurer() {
@@ -25,34 +24,33 @@ class WebSocketSecurityConfig : AbstractSecurityWebSocketMessageBrokerConfigurer
             .simpSubscribeDestMatchers("/topic/timestamps").hasRole("read-action")
             .simpSubscribeDestMatchers("/topic/whoami").authenticated()
             .simpMessageDestMatchers("/app/whoami").authenticated()
-            .anyMessage().denyAll();
+            .anyMessage().denyAll()
     }
 
     // Disable CSRF for WebSockets
     override fun sameOriginDisabled(): Boolean = true
 }
 
-
 // pls don't hate me
 @Component
 class CustomJwtAuthenticationConverter : Converter<Jwt, AbstractAuthenticationToken> {
     private val defaultGrantedAuthoritiesConverter = JwtGrantedAuthoritiesConverter()
 
-
     override fun convert(source: Jwt): AbstractAuthenticationToken {
-
-        val authorities = Stream.concat(
-            extractResourceAdditionals(source),
-            defaultGrantedAuthoritiesConverter.convert(source)!!.stream()
-        ).collect(Collectors.toSet())
+        val authorities =
+            Stream.concat(
+                extractResourceAdditionals(source),
+                defaultGrantedAuthoritiesConverter.convert(source)!!.stream(),
+            ).collect(Collectors.toSet())
 
         return JwtAuthenticationToken(source, authorities, source.getClaimAsString("preferred_username"))
     }
 
-    private fun extractResourceAdditionals(source: Jwt): Stream<out GrantedAuthority> = Stream.concat(
-        extractResourceScopes(source),
-        extractResourceRoles(source)
-    ).map { SimpleGrantedAuthority(it) }
+    private fun extractResourceAdditionals(source: Jwt): Stream<out GrantedAuthority> =
+        Stream.concat(
+            extractResourceScopes(source),
+            extractResourceRoles(source),
+        ).map { SimpleGrantedAuthority(it) }
 
     private fun extractResourceScopes(source: Jwt): Stream<String> {
         val resourceAccess = source.getClaim<Map<String, Any>?>("resource_access")
@@ -79,4 +77,3 @@ class CustomJwtAuthenticationConverter : Converter<Jwt, AbstractAuthenticationTo
         return Stream.empty()
     }
 }
-

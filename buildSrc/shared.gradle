@@ -1,0 +1,188 @@
+configurations.configureEach {
+    exclude group: "org.springframework.boot", module: "spring-boot-starter-tomcat"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+    }
+}
+
+dependencies {
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.springframework:spring-context-indexer'
+
+    compileOnly 'org.springframework:spring-context-indexer'
+
+    // eas message schema
+    implementation "com.google.protobuf:protobuf-java:${protocVersion}"
+
+    // spring boot
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+    implementation 'org.springframework.boot:spring-boot-starter-jetty'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.security:spring-security-messaging'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+    // kotlin
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'io.projectreactor.kafka:reactor-kafka'
+    implementation 'io.confluent:kafka-schema-serializer:7.6.1'
+    implementation 'io.confluent:kafka-protobuf-serializer:7.6.1'
+
+    constraints {
+        implementation("org.apache.commons:commons-compress:1.26.2") {
+            because("CVE-2023-42503")
+        }
+    }
+
+    //csv reader
+    implementation('com.opencsv:opencsv:5.9') {
+        exclude group: 'commons-collections', module: 'commons-collections'
+    }
+
+    // others
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:${jacksonVersion}"
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation('io.confluent:kafka-schema-serializer:7.6.0') {
+        exclude group: 'org.apache.commons', module: 'commons-compress'
+    }
+    implementation 'org.apache.commons:commons-compress:1.26.0'
+    implementation 'io.confluent:kafka-protobuf-serializer:7.6.0'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // testing
+    testAnnotationProcessor 'org.springframework:spring-context-indexer'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test:3.1.4'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test:3.1.4'
+
+}
+
+sweeney {
+    enforce "jdk:[" + sourceCompatibility + ",)"
+}
+
+
+String[] defaultJvmArgs = [
+        "-Duser.timezone=${defaultTimezone}",
+        "-Duser.language=${defaultLanguage}",
+        "-Dfile.encoding=UTF-8",
+        "-Dfile.encoding=UTF-8"
+]
+
+java {
+    sourceCompatibility = "${sourceCompatibility}"
+    targetCompatibility = "${targetCompatibility}"
+    withSourcesJar()
+    withJavadocJar()
+}
+
+javadoc {
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+springBoot {
+    buildInfo()
+
+    // build time optimization, no need to search whole class tree with large proto schema
+    mainClass = "eu.eliagroup.mccs.eas.web.EasWebApplicationKt"
+}
+
+compileKotlin.dependsOn bootBuildInfo
+
+bootJar {
+    layered {
+        enabled = true
+    }
+}
+
+bootRun {
+    jvmArgs(defaultJvmArgs)
+}
+
+bootBuildImage {
+    imageName = "${project.name}:${project.version}"
+
+    environment["BP_JVM_VERSION"] = "${targetCompatibility}"
+    environment["BPL_JVM_HEAD_ROOM"] = "10" // reserve 10% of container memory for container os
+
+    // TODO https://github.com/spring-projects/spring-boot/issues/38923
+    // buildpacks = ['gcr.io/paketo-buildpacks/graalvm', 'gcr.io/paketo-buildpacks/java-native-image']
+    // environment["BP_NATIVE_IMAGE"] = 'true'
+}
+
+
+test {
+    useJUnitPlatform()
+    testLogging.events = ['failed', 'passed', 'skipped']
+    jvmArgs(defaultJvmArgs)
+
+    filter {
+        includeTestsMatching "*UnitTest"
+    }
+
+    jacoco {
+        includes = ['com/github/jschlarb/timestamp/**']
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    useJUnitPlatform()
+    minHeapSize = '128m'
+    maxHeapSize = '2048m'
+    testLogging.events = ['failed', 'passed', 'skipped']
+    jvmArgs(defaultJvmArgs)
+
+    filter {
+        includeTestsMatching "*IntegrationTest"
+    }
+
+    jacoco {
+        includes = ['com/github/jschlarb/timestamp/**']
+    }
+}
+
+jacocoTestReport {
+    executionData.from(fileTree(layout.buildDirectory).include("/jacoco/*.exec"))
+
+    reports {
+        xml.required = true
+    }
+
+    // ugly, but another solution could not be found by now
+    // See: https://stackoverflow.com/questions/29887805/filter-jacoco-coverage-reports-with-gradle
+    afterEvaluate {
+        classDirectories.from = files(classDirectories.files.collect {
+            fileTree(dir: it, includes: ["com/github/jschlarb/timestamp/**"])
+        })
+    }
+}
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
+}
+

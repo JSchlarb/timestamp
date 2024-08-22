@@ -6,6 +6,8 @@ plugins {
     id 'com.gorylenko.gradle-git-properties' version '2.4.1'
     id 'com.asarkar.gradle.build-time-tracker' version '4.3.0'
     id 'org.cyclonedx.bom' version '1.8.2'
+
+    id 'org.jetbrains.kotlin.jvm' version "${kotlinVersion}"
 }
 
 subprojects {
@@ -30,4 +32,62 @@ cyclonedxBom {
     outputFormat = 'json'
     includeBomSerialNumber = false
     componentVersion = '2.0.0'
+}
+
+String[] defaultJvmArgs = [
+        "-Duser.timezone=${defaultTimezone}",
+        "-Duser.language=${defaultLanguage}",
+        "-Dfile.encoding=UTF-8",
+        "-Dfile.encoding=UTF-8"
+]
+
+test {
+    useJUnitPlatform()
+    testLogging.events = ['failed', 'passed', 'skipped']
+    jvmArgs(defaultJvmArgs)
+
+    filter {
+        includeTestsMatching "*UnitTest"
+    }
+
+    jacoco {
+        includes = ['com/github/jschlarb/timestamp/**']
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    useJUnitPlatform()
+    minHeapSize = '128m'
+    maxHeapSize = '2048m'
+    testLogging.events = ['failed', 'passed', 'skipped']
+    jvmArgs(defaultJvmArgs)
+
+    filter {
+        includeTestsMatching "*IntegrationTest"
+    }
+
+    jacoco {
+        includes = ['com/github/jschlarb/timestamp/**']
+    }
+}
+
+jacocoTestReport {
+    executionData.from(fileTree(layout.buildDirectory).include("/jacoco/*.exec"))
+
+    reports {
+        xml.required = true
+    }
+
+    // ugly, but another solution could not be found by now
+    // See: https://stackoverflow.com/questions/29887805/filter-jacoco-coverage-reports-with-gradle
+    afterEvaluate {
+        classDirectories.from = files(classDirectories.files.collect {
+            fileTree(dir: it, includes: ["com/github/jschlarb/timestamp/**"])
+        })
+    }
+}
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
 }

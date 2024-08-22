@@ -1,0 +1,33 @@
+plugins {
+    id 'org.gradle.wrapper'
+    id 'org.gradle.jacoco'
+
+    id 'com.adarshr.test-logger' version '3.2.0'
+    id 'com.gorylenko.gradle-git-properties' version '2.4.1'
+    id 'com.asarkar.gradle.build-time-tracker' version '4.3.0'
+    id 'org.cyclonedx.bom' version '1.8.2'
+}
+
+subprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url = "https://packages.confluent.io/maven/" }
+    }
+}
+
+wrapper {
+    gradleVersion = "${gradleWrapperVersion}"
+}
+
+cyclonedxBom {
+    includeConfigs = ['runtimeClasspath']
+    skipConfigs = ['compileClasspath', 'testCompileClasspath']
+    projectType = 'application'
+    schemaVersion = '1.5'
+    destination = file("${layout.buildDirectory.get()}/reports")
+    outputName = 'sbom'
+    outputFormat = 'json'
+    includeBomSerialNumber = false
+    componentVersion = '2.0.0'
+}

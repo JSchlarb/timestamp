@@ -96,6 +96,7 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=admin
     ports:
       - 8089:8080
+      - 8090:8443
     volumes:
       - ./src/test/resources/keycloak/realm-sandbox.json:/opt/keycloak/data/import/realm.json:ro
     healthcheck:

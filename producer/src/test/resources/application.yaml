@@ -1,0 +1,26 @@
+timestamp:
+  producer:
+    topic: timestamp.raw
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  server:
+    port: 9023
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:9055
+
+    producer:
+      value-serializer: org.apache.kafka.common.serialization.LongSerializer
+
+server:
+  port: 8023

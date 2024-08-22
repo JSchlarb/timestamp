@@ -4,6 +4,8 @@ plugins {
 
     id 'com.google.protobuf' version '0.9.4'
 
+    id 'com.diffplug.spotless' version '6.25.0'
+
     id 'org.springframework.boot' version '3.3.0'
     id 'io.spring.dependency-management' version '1.1.5'
     id 'org.jetbrains.kotlin.jvm' version "${kotlinVersion}"
@@ -20,6 +22,45 @@ apply from: rootProject.file('buildSrc/shared.gradle')
 dependencies {
 
 }
+
+String[] defaultJvmArgs = [
+        "-Duser.timezone=${defaultTimezone}",
+        "-Duser.language=${defaultLanguage}",
+        "-Dfile.encoding=UTF-8",
+        "-Dfile.encoding=UTF-8"
+]
+
+springBoot {
+    buildInfo()
+
+    mainClass = "com.github.jschlarb.timestamp.TimestampProducerApplicationKt"
+}
+
+compileKotlin.dependsOn bootBuildInfo
+compileKotlin.dependsOn spotlessApply
+
+bootJar {
+    layered {
+        enabled = true
+    }
+}
+
+bootRun {
+    jvmArgs(defaultJvmArgs)
+}
+
+bootBuildImage {
+    imageName = "${project.name}:${project.version}"
+
+    environment["BP_JVM_VERSION"] = "${targetCompatibility}"
+    environment["BPL_JVM_HEAD_ROOM"] = "10" // reserve 10% of container memory for container os
+
+    // TODO https://github.com/spring-projects/spring-boot/issues/38923
+    // buildpacks = ['gcr.io/paketo-buildpacks/graalvm', 'gcr.io/paketo-buildpacks/java-native-image']
+    // environment["BP_NATIVE_IMAGE"] = 'true'
+}
+
+
 
 
 

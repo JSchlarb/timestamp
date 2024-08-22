@@ -10,6 +10,12 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "${kotlinVersion}"
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = "https://packages.confluent.io/maven/" }
+}
+
 subprojects {
     repositories {
         mavenLocal()

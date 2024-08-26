@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"dagger/timestamp/internal/dagger"
-	"strconv"
 )
 
 type Timestamp struct{}
@@ -17,12 +16,12 @@ func (m *Timestamp) Build(
 	// +optional
 	registryPassword *dagger.Secret,
 ) *dagger.Container {
-	// create a cache volume for Maven downloads
-	mavenCache := dag.CacheVolume("maven-cache")
+	// create a cache volume for Gradle downloads
+	gradleCache := dag.CacheVolume("gradle-cache")
 
 	build := dag.Container().
-		From("maven:3.9-eclipse-temurin-17").
-		WithMountedCache("/root/.m2", mavenCache).
+		From("gradle:8.10.0-jdk21").
+		WithMountedCache("/home/gradle/.gradle", gradleCache).
 		WithMountedDirectory("/app", source).
 		WithWorkdir("/app").
 		WithServiceBinding("dind", m.Dind()).
@@ -30,22 +29,21 @@ func (m *Timestamp) Build(
 
 	if publish {
 		build = build.
-			WithSecretVariable("REGISTRY_USER", registryUser).
-			WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+			WithEnvVariable("DOCKER_REGISTRY_URL", "my.repo.url").
+			WithSecretVariable("DOCKER_USERNAME", registryUser).
+			WithSecretVariable("DOCKER_PASSWORD", registryPassword).
 			WithExec([]string{
-				"mvn",
-				"-Dspring-boot.build-image.publish=" + strconv.FormatBool(publish),
-				"-Ddocker.publishRegistry.username=$REGISTRY_USER",
-				"-Ddocker.publishRegistry.password=$REGISTRY_PASSWORD",
+				"./gradlew",
 				"clean",
-				"spring-boot:build-image",
+				"bootBuildImage",
+				"--publishImage",
 			})
 	} else {
 		build = build.
 			WithExec([]string{
-				"mvn",
+				"./gradlew",
 				"clean",
-				"spring-boot:build-image",
+				"bootBuildImage",
 			})
 	}
 

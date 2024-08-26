@@ -33,7 +33,7 @@ String[] defaultJvmArgs = [
 springBoot {
     buildInfo()
 
-    mainClass = "com.github.jschlarb.timestamp.TimestampProducerApplicationKt"
+    mainClass = "com.github.jschlarb.timestamp.TimestampWebSocketApplicationKt"
 }
 
 compileKotlin.dependsOn bootBuildInfo
@@ -48,19 +48,6 @@ bootJar {
 bootRun {
     jvmArgs(defaultJvmArgs)
 }
-
-bootBuildImage {
-    imageName = "${project.name}:${project.version}"
-
-    environment["BP_JVM_VERSION"] = "${targetCompatibility}"
-    environment["BPL_JVM_HEAD_ROOM"] = "10" // reserve 10% of container memory for container os
-
-    // TODO https://github.com/spring-projects/spring-boot/issues/38923
-    // buildpacks = ['gcr.io/paketo-buildpacks/graalvm', 'gcr.io/paketo-buildpacks/java-native-image']
-    // environment["BP_NATIVE_IMAGE"] = 'true'
-}
-
-
 
 
 

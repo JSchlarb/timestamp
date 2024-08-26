@@ -23,32 +23,13 @@ dependencies {
 
 }
 
-String[] defaultJvmArgs = [
-        "-Duser.timezone=${defaultTimezone}",
-        "-Duser.language=${defaultLanguage}",
-        "-Dfile.encoding=UTF-8",
-        "-Dfile.encoding=UTF-8"
-]
-
 springBoot {
     buildInfo()
 
-    mainClass = "com.github.jschlarb.timestamp.TimestampProducerApplicationKt"
+    mainClass = "com.github.jschlarb.timestamp.TimestampWebsocketApplicationKt"
 }
 
 compileKotlin.dependsOn bootBuildInfo
 compileKotlin.dependsOn spotlessApply
-
-bootJar {
-    layered {
-        enabled = true
-    }
-}
-
-bootRun {
-    jvmArgs(defaultJvmArgs)
-}
-
-
 
 

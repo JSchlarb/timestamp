@@ -97,3 +97,22 @@ bootBuildImage {
     // environment["BP_NATIVE_IMAGE"] = 'true'
 }
 
+String[] defaultJvmArgs = [
+        "-Duser.timezone=${defaultTimezone}",
+        "-Duser.language=${defaultLanguage}",
+        "-Dfile.encoding=UTF-8",
+        "-Dfile.encoding=UTF-8"
+]
+
+
+bootJar {
+    layered {
+        enabled = true
+    }
+}
+
+bootRun {
+    jvmArgs(defaultJvmArgs)
+}
+
+

@@ -23,13 +23,6 @@ dependencies {
 
 }
 
-String[] defaultJvmArgs = [
-        "-Duser.timezone=${defaultTimezone}",
-        "-Duser.language=${defaultLanguage}",
-        "-Dfile.encoding=UTF-8",
-        "-Dfile.encoding=UTF-8"
-]
-
 springBoot {
     buildInfo()
 
@@ -38,17 +31,6 @@ springBoot {
 
 compileKotlin.dependsOn bootBuildInfo
 compileKotlin.dependsOn spotlessApply
-
-bootJar {
-    layered {
-        enabled = true
-    }
-}
-
-bootRun {
-    jvmArgs(defaultJvmArgs)
-}
-
 
 
 

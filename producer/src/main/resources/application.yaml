@@ -17,15 +17,10 @@ management:
 
 spring:
   kafka:
-    bootstrap-servers: bootstrap.local.lgc:9094
-    security:
-      protocol: SSL
-    ssl:
-      key-store-type: PKCS12
-      key-store-location: classpath:user.p12
-      key-store-password: ~
-      truststore-type: PEM
-      trust-store-location: classpath:ca.crt
+    bootstrap-servers: localhost:9055
+    properties:
+      auto.register.schemas: true
+      schema.registry.url: http://localhost:8081
 
     producer:
       value-serializer: org.apache.kafka.common.serialization.LongSerializer

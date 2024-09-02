@@ -17,8 +17,10 @@ management:
 
 spring:
   kafka:
-    bootstrap-servers: localhost:9055
-
+    bootstrap-servers: kafka:9055
+    properties:
+      auto.register.schemas: true
+      schema.registry.url: http://schema-registry:8081
     producer:
       value-serializer: org.apache.kafka.common.serialization.LongSerializer
 

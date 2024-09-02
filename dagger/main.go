@@ -78,16 +78,32 @@ func (m *Timestamp) KafkaService() *dagger.Service {
 		AsService()
 }
 
-func (m *Timestamp) IntegrationTest(ctx context.Context, source *dagger.Directory) *dagger.Container {
-	mavenCache := dag.CacheVolume("maven-cache")
+func (m *Timestamp) GradleTest(
+	ctx context.Context,
+	source *dagger.Directory,
+) *dagger.Container {
+	// create a cache volume for Gradle downloads
+
+	build := dag.Container().
+		From("gradle:8.10.0-jdk21").
+		WithMountedDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{
+			"./gradlew",
+			"test",
+		})
+
+	return build
+}
+
+func (m *Timestamp) GradleIntegrationTest(ctx context.Context, source *dagger.Directory) *dagger.Container {
 
 	return dag.Container().
-		From("maven:3.9-eclipse-temurin-17").
-		WithMountedCache("/root/.m2", mavenCache).
+		From("gradle:8.10.0-jdk21").
 		WithMountedDirectory("/app", source).
 		WithWorkdir("/app").
 		WithServiceBinding("schema-registry", m.SchemaRegistryService()).
-		WithExec([]string{"curl", "schema-registry:8081/v1/metadata/id"})
+		WithExec([]string{"./gradlew", "schema-registry:8081/v1/metadata/id"})
 }
 
 func (m *Timestamp) VulnerabilityCheck(

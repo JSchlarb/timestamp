@@ -13,17 +13,16 @@ fun main(args: Array<String>) {
     runApplication<TimestampWebSocketApplication>(*args)
 }
 
-
 @ConfigurationProperties(prefix = "timestamp")
 data class TimestampProperties(
-    val consumer: Consumer
+    val consumer: Consumer,
 ) {
     data class Consumer(
-        val topic: Topic
+        val topic: Topic,
     ) {
         data class Topic(
             val iso: String,
-            val basicIsoDate: String
+            val basicIsoDate: String,
         )
     }
 }

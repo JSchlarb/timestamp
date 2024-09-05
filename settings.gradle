@@ -1,0 +1,14 @@
+pluginManagement {
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+  }
+
+  plugins {
+    id 'org.springframework.boot' version "${springBootVersion}"
+  }
+}
+
+include("producer", "websocket", "formatter")
+
+rootProject.name = 'timestamp'

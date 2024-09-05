@@ -1,0 +1,20 @@
+{
+  "name": "timestamp",
+  "sdk": "go",
+  "dependencies": [
+    {
+      "name": "docker-compose",
+      "source": "github.com/shykes/daggerverse/docker-compose@c448f929b53be0f09eafe884cc77612a6d6fc7f9"
+    },
+    {
+      "name": "docker",
+      "source": "github.com/aweris/daggerverse/docker@83c5efe92af2afacff2a1d3475480ac7f3710ed9"
+    },
+    {
+      "name": "java",
+      "source": "github.com/jcsirot/daggerverse/java@c591e9e0b99def2fc8a67bb090fca5cd06cf6a1d"
+    }
+  ],
+  "source": "dagger",
+  "engineVersion": "v0.12.1"
+}

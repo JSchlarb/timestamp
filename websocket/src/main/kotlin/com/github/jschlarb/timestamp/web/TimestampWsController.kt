@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.event.TransactionalEventListener
 
-
 @Controller
 class TimestampWsController(val test: SimpMessagingTemplate) {
     @Async

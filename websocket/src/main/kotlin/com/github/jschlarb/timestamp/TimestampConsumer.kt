@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class TimestampConsumer(private val publisher: ApplicationEventPublisher) {
-
     @KafkaListener(topics = ["\${timestamp.consumer.topic.iso}", "\${timestamp.consumer.topic.basicIsoDate}"])
     fun publishCustomEventIso(record: ConsumerRecord<String, String>) {
         publisher.publishEvent(KafkaTimestampMessage(this, record.value(), record.topic()))

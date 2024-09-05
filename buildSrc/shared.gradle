@@ -1,0 +1,169 @@
+configurations.configureEach {
+    exclude group: "org.springframework.boot", module: "spring-boot-starter-tomcat"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+    }
+}
+
+dependencies {
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.springframework:spring-context-indexer'
+
+    compileOnly 'org.springframework:spring-context-indexer'
+
+    // spring boot
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+
+    implementation 'org.springframework.boot:spring-boot-starter-jetty'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.security:spring-security-messaging'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    // kotlin
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // others
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+
+    // testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+
+sweeney {
+    enforce "jdk:[" + sourceCompatibility + ",)"
+}
+
+spotless {
+    kotlin {
+        lineEndings = 'UNIX'
+
+        trimTrailingWhitespace()
+        ktlint()
+    }
+}
+
+
+java {
+    sourceCompatibility = "${sourceCompatibility}"
+    targetCompatibility = "${targetCompatibility}"
+    withSourcesJar()
+    withJavadocJar()
+}
+
+javadoc {
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
+}
+
+bootBuildImage {
+    environment["BP_JVM_VERSION"] = "${targetCompatibility}"
+    environment["BPL_JVM_HEAD_ROOM"] = "10" // reserve 10% of container memory for container os
+
+    if("$System.env.DOCKER_REGISTRY_URL" != "null") {
+        imageName = "$System.env.DOCKER_REGISTRY_URL/${project.name}:${project.version}"
+    } else{
+        imageName = "${project.name}:${project.version}"
+    }
+
+    docker {
+        publishRegistry {
+            username = "$System.env.DOCKER_USERNAME"
+            password = "$System.env.DOCKER_PASSWORD"
+        }
+    }
+
+    // TODO https://github.com/spring-projects/spring-boot/issues/38923
+    // buildpacks = ['gcr.io/paketo-buildpacks/graalvm', 'gcr.io/paketo-buildpacks/java-native-image']
+    // environment["BP_NATIVE_IMAGE"] = 'true'
+}
+
+String[] defaultJvmArgs = [
+        "-Duser.timezone=${defaultTimezone}",
+        "-Duser.language=${defaultLanguage}",
+        "-Dfile.encoding=UTF-8",
+        "-Dfile.encoding=UTF-8"
+]
+
+
+bootJar {
+    layered {
+        enabled = true
+    }
+}
+
+bootRun {
+    jvmArgs(defaultJvmArgs)
+}
+
+test {
+    useJUnitPlatform()
+    testLogging.events = ['failed', 'passed', 'skipped']
+    jvmArgs(defaultJvmArgs)
+
+    filter {
+        includeTestsMatching "*UnitTest"
+    }
+
+    jacoco {
+        includes = ['com/github/jschlarb/timestamp/**']
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    useJUnitPlatform()
+    minHeapSize = '128m'
+    maxHeapSize = '2048m'
+    testLogging.events = ['failed', 'passed', 'skipped']
+    jvmArgs(defaultJvmArgs)
+
+    filter {
+        includeTestsMatching "*IntegrationTest"
+    }
+
+    jacoco {
+        includes = ['com/github/jschlarb/timestamp/**']
+    }
+}
+
+jacocoTestReport {
+    executionData.from(fileTree(layout.buildDirectory).include("/jacoco/*.exec"))
+
+    reports {
+        xml.required = true
+    }
+
+    // ugly, but another solution could not be found by now
+    // See: https://stackoverflow.com/questions/29887805/filter-jacoco-coverage-reports-with-gradle
+    afterEvaluate {
+        classDirectories.from = files(classDirectories.files.collect {
+            fileTree(dir: it, includes: ["com/github/jschlarb/timestamp/**"])
+        })
+    }
+}
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
+}
+
+

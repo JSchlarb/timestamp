@@ -1,0 +1,28 @@
+plugins {
+    id 'org.gradle.wrapper'
+    id 'org.gradle.jacoco'
+
+    id 'com.adarshr.test-logger' version '3.2.0'
+    id 'com.gorylenko.gradle-git-properties' version '2.4.1'
+    id 'com.asarkar.gradle.build-time-tracker' version '4.3.0'
+
+    id 'org.jetbrains.kotlin.jvm' version "${kotlinVersion}"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = "https://packages.confluent.io/maven/" }
+}
+
+subprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url = "https://packages.confluent.io/maven/" }
+    }
+}
+
+wrapper {
+    gradleVersion = "${gradleWrapperVersion}"
+}

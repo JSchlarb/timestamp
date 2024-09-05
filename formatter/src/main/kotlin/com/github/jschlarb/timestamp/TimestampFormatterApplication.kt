@@ -23,9 +23,8 @@ fun main(args: Array<String>) {
 @Component
 class TimestampKafkaConsumer(
     private val kafkaTemplate: KafkaTemplate<String, String>,
-    private val props: TimestampProperties
+    private val props: TimestampProperties,
 ) {
-
     companion object {
         private val isoFormatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.systemDefault())
         private val basicIsoDateFormatter = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneId.systemDefault())
@@ -47,18 +46,18 @@ class TimestampKafkaConsumer(
 @ConfigurationProperties(prefix = "timestamp")
 data class TimestampProperties(
     val producer: Producer,
-    val consumer: Consumer
+    val consumer: Consumer,
 ) {
     data class Producer(
-        val topic: Topic
+        val topic: Topic,
     ) {
         data class Topic(
             val iso: String,
-            val basicIsoDate: String
+            val basicIsoDate: String,
         )
     }
 
     data class Consumer(
-        val topic: String
+        val topic: String,
     )
 }

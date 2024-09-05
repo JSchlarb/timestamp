@@ -18,11 +18,10 @@ fun main(args: Array<String>) {
     runApplication<TimestampProducerApplication>(*args)
 }
 
-
 @Component
 class TimestampKafkaProducer(
     private val kafkaTemplate: KafkaTemplate<String, Long>,
-    private val props: TimestampProperties
+    private val props: TimestampProperties,
 ) {
     @Scheduled(fixedDelay = 1_000)
     fun sendTimestamp() {
@@ -30,12 +29,11 @@ class TimestampKafkaProducer(
     }
 }
 
-
 @ConfigurationProperties(prefix = "timestamp")
 data class TimestampProperties(
     val producer: Producer,
 ) {
     data class Producer(
-        val topic: String
+        val topic: String,
     )
 }

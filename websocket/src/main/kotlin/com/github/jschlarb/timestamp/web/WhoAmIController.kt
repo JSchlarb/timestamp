@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class WhoAmIController {
-
     @GetMapping("/who-am-i/admin")
     fun amIAdmin(): Boolean = true
 

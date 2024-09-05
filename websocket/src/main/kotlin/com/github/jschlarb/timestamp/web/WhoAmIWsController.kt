@@ -6,7 +6,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Controller
 
-
 @Controller
 class WhoAmIWsController(val test: SimpMessagingTemplate) {
     @MessageMapping("/whoami")
